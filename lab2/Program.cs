@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -6,6 +6,8 @@ using System.Text;
 using Newtonsoft.Json;
 using EllipticCurve;
 using System.Transactions;
+using Lab2_Kizy;
+using Transaction = Lab2_Kizy.Transaction;
 
 namespace RootCoin
 {
@@ -13,58 +15,37 @@ namespace RootCoin
     {
         static void Main(string[] args)
         {
-
             PrivateKey key1 = new PrivateKey();
             PublicKey wallet1 = key1.publicKey();
 
             PrivateKey key2 = new PrivateKey();
             PublicKey wallet2 = key1.publicKey();
 
-            Blockchain rootcoin = new.Blockchain(2, 100);
+            Blockchain rootcoin = new Blockchain(2, 100);
 
             Console.WriteLine("Start the Miner.");
+            rootcoin.MinePendingTransactions(wallet1);
+            Console.WriteLine("\nBalance ofwallet is $" + rootcoin.GetBalanceOfWallet(wallet1).ToString());
 
-            string blockJSON = JsonConvert.SerializeObject(rootcoin, formatting.Indented);
-            Console.WriteLine(BlockJSON);
+            Transaction tx1 = new Transaction(wallet1, wallet2, 10);
+            tx1.SignTransaction(key1);
+            rootcoin.addPendingTransaction(tx1);
+            Console.WriteLine("Start the Miner.");
+            rootcoin.MinePendingTransactions(wallet2);
+            Console.WriteLine("\nBalance ofwallet is $" + rootcoin.GetBalanceOfWallet(wallet1).ToString());
+            Console.WriteLine("\nBalance ofwallet is $" + rootcoin.GetBalanceOfWallet(wallet2).ToString());
 
-            if (rootcoin.IsChainValid)
+            string blockJSON = JsonConvert.SerializeObject(rootcoin, Formatting.Indented);
+            Console.WriteLine(blockJSON);
 
-
-            Block newBlock = new Block(1, DateTime.Now.ToString("yyyyMMddHmmssffff"), "amount: 50", "");
-            string blockJSON = JsonConvert.SerializeObject(newBlock, Formatting.Indented);
-            Console.WriteLine(BlockJSON);
+            if (rootcoin.IsChainValid())
+            {
+                Console.WriteLine("Blockchain is Valid!!!");
+            }
+            else 
+            {
+                Console.WriteLine("Blockchains is NOT valid.");
+            }
         }
     }
-    
-    class Blockchain
-    {
-
-    }
-
-    class Block
-    {
-        public int Index { get; set; }
-        public string PreviousHash { get; set; }
-        public string timestamp { get; set; }
-        public string Data { get; set; }
-        public string Hash { get; set; }
-        
-        public Block(int index, string timestap, string data, string previousHash="")
-        {
-            this.Index = index;
-            this.timestamp = timestamp;
-            this.Data = data;
-            this.PreviousHash = previousHash;
-        }
-
-        public string CalculateHash()
-        {
-            string blockData = this.Index + this.Index.PreviousHash + this.Timestamp + this.Data;
-            byte[] blockBytes = Encoding.ASCII.GetBytes(blockData);
-            byte[] hashBytes = SHA256.Create().ComputeHash(blockBytes);
-            return BitConverter.ToString(hashBytes).Replace("-", "");
-        }
-    }
-       
-       
 }
